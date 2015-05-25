@@ -2,20 +2,20 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Css on SmithFox Blog</title>
-    <link>http://localhost:1313/tags/css/</link>
+    <link>http://smithfox.github.io/tags/css/</link>
     <description>Recent content in Css on SmithFox Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-CN</language>
     <copyright>@ 2015 by SmithFox</copyright>
     <lastBuildDate>Mon, 25 May 2015 20:16:44 +0800</lastBuildDate>
-    <atom:link href="http://localhost:1313/tags/css/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="http://smithfox.github.io/tags/css/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
       <title>网站的基本样式</title>
-      <link>http://localhost:1313/post/second/</link>
+      <link>http://smithfox.github.io/post/second/</link>
       <pubDate>Mon, 25 May 2015 20:16:44 +0800</pubDate>
       
-      <guid>http://localhost:1313/post/second/</guid>
+      <guid>http://smithfox.github.io/post/second/</guid>
       <description>
 
 &lt;h1 id=&#34;网站的基本样式参考:9f7936f9b5c071ae81db818b80a44a0d&#34;&gt;网站的基本样式参考&lt;/h1&gt;

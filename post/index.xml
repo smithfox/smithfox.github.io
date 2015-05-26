@@ -7,8 +7,228 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-CN</language>
     <copyright>@ 2015 by SmithFox</copyright>
-    <lastBuildDate>Mon, 25 May 2015 20:16:44 +0800</lastBuildDate>
+    <lastBuildDate>Tue, 26 May 2015 16:32:07 +0800</lastBuildDate>
     <atom:link href="http://smithfox.github.io/post/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>用golan进行词法分析，第一部分</title>
+      <link>http://smithfox.github.io/post/p3/</link>
+      <pubDate>Tue, 26 May 2015 16:32:07 +0800</pubDate>
+      
+      <guid>http://smithfox.github.io/post/p3/</guid>
+      <description>
+
+&lt;h3 id=&#34;主要步骤:3338874448cf36f2056dd96b34bbe8b9&#34;&gt;主要步骤&lt;/h3&gt;
+
+&lt;ol&gt;
+&lt;li&gt;词法分析(lexical parse或是lexical scan) 得到 token&lt;/li&gt;
+&lt;li&gt;语法分析(syntax parse)得到AST(syntax tree)&lt;/li&gt;
+&lt;li&gt;语义分析(semantic parse)修改AST&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h3 id=&#34;词法分析常见问题:3338874448cf36f2056dd96b34bbe8b9&#34;&gt;词法分析常见问题&lt;/h3&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;p&gt;输入内容编码问题: 可能有汉字
+&amp;gt; 词法分析前，都转换为utf-8，要注意utf-8的BOM问题&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;源文件不止一个，如何组织
+&amp;gt; 一般是抽象File和FileSet，但这个File和io.File不一样&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;怎么让处理错误? 推出逻辑和显示
+&amp;gt; 需要知道是哪个文件，哪行哪列&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;转义问题&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;数的词法，其他进制(8进制和16进制)，科学数字表示&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;Token如何定义&lt;/p&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h3 id=&#34;先来一个简化的词法分析:3338874448cf36f2056dd96b34bbe8b9&#34;&gt;先来一个简化的词法分析&lt;/h3&gt;
+
+&lt;p&gt;没有源代码文件，直接string源代码。utf-8编码，不处理转义，直接printf错误，只有10进制。
+&lt;strong&gt;我们要分析&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;int ak = 38;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;我们的原则是麻雀虽小五脏俱全&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;package main
+
+import (
+	&amp;quot;fmt&amp;quot;
+)
+
+const (
+	_         int = iota //
+	ILLEGAL              //
+	EOF                  //
+	IDENT                // main
+	DECLINT              // int
+	NUMBER               // 123
+	ASSIGN               // =
+	SEMICOLON            // ;
+)
+
+var TOKEN_NAMES = [...]string{
+	ILLEGAL:   &amp;quot;ILLEGAL&amp;quot;,
+	EOF:       &amp;quot;EOF&amp;quot;,
+	IDENT:     &amp;quot;IDENT&amp;quot;,
+	DECLINT:   &amp;quot;DECLINT&amp;quot;,
+	NUMBER:    &amp;quot;NUMBER&amp;quot;,
+	ASSIGN:    &amp;quot;ASSIGN&amp;quot;,
+	SEMICOLON: &amp;quot;SEMICOLON&amp;quot;,
+}
+
+type Token struct {
+	TokenType   int
+	TokenName   string
+	TokenString string
+}
+
+func IsKeywordToken(ss string) (int, bool) {
+	if ss == &amp;quot;int&amp;quot; {
+		return DECLINT, true
+	}
+	return IDENT, false
+}
+
+type Source struct {
+	str string
+	d0  int
+	d1  int
+	c   rune
+	l   int
+}
+
+func (m *Source) next() {
+	if m.d1 &amp;lt; m.l {
+		m.d0 = m.d1
+		m.c = rune(m.str[m.d0])
+		m.d1++
+	} else {
+		m.d0 = m.l
+		m.c = -1 // EOF
+	}
+}
+
+func IsWhiteSpace(chr rune) bool {
+	if chr == &#39; &#39; || chr == &#39;\t&#39; || chr == &#39;\n&#39; || chr == &#39;\r&#39; {
+		return true
+	} else {
+		return false
+	}
+}
+
+func (m *Source) skipWhiteSpace() {
+	for IsWhiteSpace(m.c) {
+		m.next()
+	}
+}
+
+func IsNumber(chr rune) bool {
+	if &#39;0&#39; &amp;lt;= chr &amp;amp;&amp;amp; chr &amp;lt;= &#39;9&#39; {
+		return true
+	}
+	return false
+}
+
+func (m *Source) skipNumber() {
+	for IsNumber(m.c) {
+		m.next()
+	}
+}
+
+func IsLetter(chr rune) bool {
+	if &#39;a&#39; &amp;lt;= chr &amp;amp;&amp;amp; chr &amp;lt;= &#39;z&#39; || &#39;A&#39; &amp;lt;= chr &amp;amp;&amp;amp; chr &amp;lt;= &#39;Z&#39; {
+		return true
+	}
+	return false
+}
+
+func (m *Source) skipLetters() {
+	for IsLetter(m.c) {
+		m.next()
+	}
+}
+
+func (m *Source) printf() {
+	fmt.Printf(&amp;quot;(d0:%d, d1:%d)\n&amp;quot;, m.d0, m.d1)
+}
+
+func main() {
+	src := `int ak = 38;`
+	source := &amp;amp;Source{str: src, l: len(src), c: rune(src[0])}
+	tokens, err := scan(source)
+	if err != nil {
+		fmt.Printf(&amp;quot;scan err=%v\n&amp;quot;, err)
+		return
+	}
+	show(tokens)
+}
+
+func scan(source *Source) ([]*Token, error) {
+	tokens := []*Token{}
+	n := 0
+	for {
+		n++
+		if n &amp;gt; 100 {
+			break
+		}
+		source.printf()
+		source.skipWhiteSpace()
+		switch c := source.c; {
+		case IsLetter(c):
+			d0 := source.d0
+			source.skipLetters()
+			ss := source.str[d0 : source.d1-1]
+			//fmt.Printf(&amp;quot;ss=%s,source.d1=%d,source.d0=%d,d0=%d\n&amp;quot;, ss, source.d1, source.d0, d0)
+			tmptoken, iskeyword := IsKeywordToken(ss)
+			if iskeyword {
+				tokens = append(tokens, &amp;amp;Token{TokenType: tmptoken, TokenName: TOKEN_NAMES[tmptoken], TokenString: ss})
+			} else {
+				tokens = append(tokens, &amp;amp;Token{TokenType: IDENT, TokenName: TOKEN_NAMES[IDENT], TokenString: ss})
+			}
+		case IsNumber(c):
+			d0 := source.d0
+			source.skipNumber()
+			ss := source.str[d0 : source.d1-1]
+			tokens = append(tokens, &amp;amp;Token{TokenType: NUMBER, TokenName: TOKEN_NAMES[NUMBER], TokenString: ss})
+		case c == &#39;;&#39;:
+			tokens = append(tokens, &amp;amp;Token{TokenType: SEMICOLON, TokenName: TOKEN_NAMES[SEMICOLON], TokenString: &amp;quot;;&amp;quot;})
+			source.next()
+		case c == &#39;=&#39;:
+			tokens = append(tokens, &amp;amp;Token{TokenType: ASSIGN, TokenName: TOKEN_NAMES[ASSIGN], TokenString: &amp;quot;=&amp;quot;})
+			source.next()
+		case c == -1:
+			tokens = append(tokens, &amp;amp;Token{TokenType: EOF, TokenName: TOKEN_NAMES[EOF], TokenString: &amp;quot;&amp;quot;})
+			goto _exit
+		default:
+			tokens = append(tokens, &amp;amp;Token{TokenType: ILLEGAL, TokenName: TOKEN_NAMES[ILLEGAL], TokenString: &amp;quot;&amp;quot;})
+			goto _exit
+		}
+	}
+_exit:
+	return tokens, nil
+}
+
+func show(tokens []*Token) {
+	for _, token := range tokens {
+		fmt.Printf(&amp;quot;[&amp;quot; + token.TokenName + &amp;quot;],&amp;quot;)
+	}
+	fmt.Printf(&amp;quot;\n--------------------------\n&amp;quot;)
+	for _, token := range tokens {
+		fmt.Printf(&amp;quot;[&amp;quot; + token.TokenString + &amp;quot;],&amp;quot;)
+	}
+}
+
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://wide.b3log.org/playground/ce2e3f4ea0984c953aebd8223367bb7b.go&#34;&gt;play&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
     
     <item>
       <title>网站的基本样式</title>

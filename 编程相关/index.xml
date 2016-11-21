@@ -7,13 +7,13 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>Powered by [Hugo](//gohugo.io). Theme by [wave](https://gitlab.com/syui/hugo-theme-wave).</copyright>
-    <lastBuildDate>Wed, 31 Aug 2016 16:32:07 +0800</lastBuildDate>
+    <lastBuildDate>Sun, 11 Sep 2011 16:32:07 +0800</lastBuildDate>
     <atom:link href="https://smithfox.github.io/%E7%BC%96%E7%A8%8B%E7%9B%B8%E5%85%B3/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
       <title>[思考] 也谈同步异步I/O</title>
       <link>https://smithfox.github.io/%E7%BC%96%E7%A8%8B%E7%9B%B8%E5%85%B3/think-about-io/</link>
-      <pubDate>Wed, 31 Aug 2016 16:32:07 +0800</pubDate>
+      <pubDate>Sun, 11 Sep 2011 16:32:07 +0800</pubDate>
       
       <guid>https://smithfox.github.io/%E7%BC%96%E7%A8%8B%E7%9B%B8%E5%85%B3/think-about-io/</guid>
       <description>&lt;p&gt;[思考] 也谈同步异步I/O&lt;/p&gt;

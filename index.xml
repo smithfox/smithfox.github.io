@@ -1,24 +1,182 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>SmithFox Blog</title>
-    <link>http://smithfox.github.io/</link>
-    <description>Recent content on SmithFox Blog</description>
+    <title>SMITHFOX</title>
+    <link>https://smithfox.github.io/index.xml</link>
+    <description>Recent content on SMITHFOX</description>
     <generator>Hugo -- gohugo.io</generator>
-    <language>zh-CN</language>
-    <copyright>@ 2015 by SmithFox</copyright>
-    <lastBuildDate>Tue, 26 May 2015 16:32:07 +0800</lastBuildDate>
-    <atom:link href="http://smithfox.github.io/index.xml" rel="self" type="application/rss+xml" />
+    <language>en-us</language>
+    <copyright>Powered by [Hugo](//gohugo.io). Theme by [wave](https://gitlab.com/syui/hugo-theme-wave).</copyright>
+    <lastBuildDate>Wed, 31 Aug 2016 16:32:07 +0800</lastBuildDate>
+    <atom:link href="https://smithfox.github.io/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
-      <title>用golan进行词法分析，第一部分</title>
-      <link>http://smithfox.github.io/post/p3/</link>
+      <title>[思考] 也谈同步异步I/O</title>
+      <link>https://smithfox.github.io/%E7%BC%96%E7%A8%8B%E7%9B%B8%E5%85%B3/think-about-io/</link>
+      <pubDate>Wed, 31 Aug 2016 16:32:07 +0800</pubDate>
+      
+      <guid>https://smithfox.github.io/%E7%BC%96%E7%A8%8B%E7%9B%B8%E5%85%B3/think-about-io/</guid>
+      <description>&lt;p&gt;[思考] 也谈同步异步I/O&lt;/p&gt;
+
+&lt;p&gt;[原创链接: &lt;a href=&#34;http://www.smithfox.com/?e=191&#34;&gt;http://www.smithfox.com/?e=191&lt;/a&gt;, 转载请保留此声明, 谢谢! ]&lt;/p&gt;
+
+&lt;p&gt;I/O Model 是一个很大的话题, 也是一个实践性很强的事情, 网上有各种说法和资料, 我们必须用辩证的态度去看待(包括本Blog :) ), 因为有的信息是过时的, 有些则可能是未经实践的片面的理解.&lt;/p&gt;
+
+&lt;p&gt;为避免走题(走到 高并发问题 上去了), 本次讨论作了以下限制 (从另一方面讲, 也是一些思路)&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;单服务器的情况, (不考虑分布式)&lt;/li&gt;
+&lt;li&gt;主流硬件, (不考虑基于hardware的I/O提升, 比如SSD硬盘, 光纤)&lt;/li&gt;
+&lt;li&gt;多进程或是多线程不是讨论的重点, (这又是一个很大的话题)&lt;/li&gt;
+&lt;li&gt;基于主流服务器软件架构: linux2.6 + java&lt;/li&gt;
+&lt;li&gt;不考虑其它优化方法, 比如application层的cache机制&lt;/li&gt;
+&lt;li&gt;只考虑最常见的socket一应一答模式, 不考虑改进通讯模式的改进, 比如cometd机制&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;&lt;strong&gt;异步就是异步&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;网上有许多I/O模型的相关文章, 主要涉及四个概念: 同步(synchronous), 异步(asynchronous), 阻塞(blocking) 和 非阻塞(non-blocking). 有些文章将这四个作了两两组合, 于是有了: &lt;del&gt;异步阻塞&lt;/del&gt; 和  &lt;del&gt;异步非阻塞&lt;/del&gt; , 可以很明确地说, 这完全是牵强之理解. 无论是 &lt;Unix网络编程&gt;一书中所列的I/O模式, 还是POSIX标准, 都没有提这两个概念. 异步就是异步! 只有同步时才有阻塞和非阻塞之分.&lt;/p&gt;
+
+&lt;p&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;阻塞和非阻塞&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;我们说 阻塞和 非阻塞 时, 要区分场合范围, 比如 Linux中说的 非阻塞I/O 和 Java的NIO1.0中的 非阻塞I/O 不是相同的概念. 从最根本来说, 阻塞就是进程 &amp;ldquo;被&amp;rdquo; 休息, CPU处理其它进程去了. 非阻塞可以理解成: 将大的整片时间的阻塞分成N多的小的阻塞, 所以进程不断地有机会 &amp;ldquo;被&amp;rdquo; CPU光顾, 理论上可以做点其它事. 看上去 Linux非阻塞I/O 要比阻塞好, 但CPU会很大机率因socket没数据而空转. 虽然这个进程是爽了, 但是从整个机器的效率来说, 浪费更大了!  Java NIO1.0中的非阻塞I/O中的 Selector.select()函数还是阻塞的, 所以不会有无谓的CPU浪费.&lt;/p&gt;
+
+&lt;p&gt;Java NIO1.0, 与其说是非阻塞I/O, 还不如说是, 多路复用I/O, 更好让人理解!&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;异步&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;异步可以说是I/O最理想的模型: CPU的原则是, 有必要的时候才会参与, 既不浪费, 也不怠慢.&lt;/p&gt;
+
+&lt;p&gt;理想中的异步I/O: Application无需等待socket数据(也正是因此进程而被 &amp;ldquo;休息&amp;rdquo;), 也无需 copy socket data, 将由其它的同学(理想状态, 不是CPU) 负责将socket data copy到Appliation事先指定的内存后, 通知一声Appliation(一般是回调函数).&lt;/p&gt;
+
+&lt;p&gt;copy socket data, Application是不用做了, 但事情总是需要做, 不管是谁做, CPU是否还是要花费精力去参与呢?&lt;/p&gt;
+
+&lt;p&gt;可以用 &amp;ldquo;内存映射&amp;rdquo; 以及 DMA等方式来达到 &amp;ldquo;不用CPU去参与繁重的工作&amp;rdquo; 的目的. &amp;ldquo;内存映射&amp;rdquo; 是不用copy, 而DMA是有其它芯片来代替CPU处理.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;传统的阻塞socket有什么问题?&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;最传统的阻塞socket, 为了不致使处理一个client的请求时, 让其它的client一直等, 一般会一个client连接, 就会起一个Thread. 实际情况是, 有的业务, 只是client连接多, 但每个client连接上的通讯并不是非常频繁, 就算是很频繁, 也会因网络延迟, 而使得大部分时间内,Thread们都在被&amp;rdquo;休息&amp;rdquo;(因为等待scoket上数据), 因为相对cpu的运算速度, 网络延迟产生的间歇时间相当多. 这就造成了: 虽然Thread多, 并不能处理太多的socket请求, 要知道在JVM中每个Thread都会单独分配栈的(JVM默认好象是1M, 可以通过 -Xss来调整), 而且需CPU要不断地在很多线程之间switch, 保存/恢复 Thread Context 代价非常大!&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;多路复用&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;为了解决阻塞I/O的问题, 就有了 I/O多路复用 模型, 多路复用就是用单独的线程(是内核级的, 可以认为是高效的优化的) 来统一等待所有的socket上的数据, 一当某个socket上有数据后, 就启用用户线程(可能是从线程池中取出, 而不是重新生成), copy socket data, 并且处理message.  因为网络延迟的原因, 同时在处理socket data的用户线程往往比实际的socket数量要少很多. 所以实际应用中, 大部分是用线程池, 池中thread数量可随socket的高峰和低谷 而动态调整.&lt;/p&gt;
+
+&lt;p&gt;上面说的 多路复用I/O, 很多文章称之为   同步非阻塞. 个人认为, 不要老揪着那四个词不放! 多累呀!&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;多路复用, 既可以理解成 &amp;ldquo;非阻塞&amp;rdquo;, 也可以理解成 &amp;ldquo;阻塞&amp;rdquo;&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;多路复用I/O 中内核中统一的 wait socket data那部分可以理解成 是 &amp;ldquo;非阻塞&amp;rdquo;, 也可以理解成&amp;rdquo;阻塞&amp;rdquo;. 可以理解成&amp;rdquo;非阻塞&amp;rdquo; 是因为它不是等到socket数据全部到达再处理, 而是有了一部分数据就会调用用户线程来处理, 理解成&amp;rdquo;阻塞&amp;rdquo;, 是因为它和用户空间(Appliction)层的&amp;rdquo;非阻塞&amp;rdquo;socket的不同是: socket中没有数据时, 内核还是wait(阻塞)的, 而用户空间的非阻塞socket没有数据也会返回, 会造成CPU的浪费(上面已经解释过了).&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;select 和 poll&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Linux下的 select和poll 就是 多路复用模式, poll 相对 select, 没有了句柄数的限制, 但他们都是在内核层通过轮询socket句柄的方式来实现的, 没有利用更底层的 notify 机制.  但就算是这样,相对阻塞socket 也已经进步了很多很多了! 毕竟用一个内核线程就解决了, 阻塞socket中N多线程都在无谓地wait的局面.&lt;/p&gt;
+
+&lt;p&gt;多路复用I/O 还是让用户层来copy socket data. 这个过程是将内核中的socket buffer copy 到用户空间的 buffer. 这有两个问题: 一是多了一次内核空间switch到用户空间的过程, 二是用户空间层不便暴露很低层但很高效的copy 方式(比如DMA), 所以如果由内核层来做这个动作, 可以更好地提高效率!&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;epoll, Linux的AIO&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;于是, 在Linux2.6 epoll出现了, epoll是Linux下 AIO(异步IO)的实现方式, 实际上在epoll成为最终方案之前, 也有其它的方案, 而且在其它的操作系统中都有着不同的AIO实现.&lt;/p&gt;
+
+&lt;p&gt;epoll 的出现是革命性的, 因为它相对 poll 又有了很 cool 的改进, 完全可以基于它实现 AIO了.&lt;/p&gt;
+
+&lt;p&gt;epoll 已经采用了更为底层的 notify 机制, 而不是肓目地轮询来实现, 这样既减少了内核层的CPU消耗, 也使得上层的Application能更集中地关注应该关注的socket, 而不必每次都要将所有的 socket 通过 FD_ISSET来判断一下.&lt;/p&gt;
+
+&lt;p&gt;更为重要的是, epoll 因为采用 mmap的机制, 使得 内核socket buffer和 用户空间的 buffer共享, 从面省去了 socket data copy, 这也意味着, 当epoll 回调上层的 callback函数来处理 socket 数据时, 数据已经从内核层 &amp;ldquo;自动&amp;rdquo; 到了用户空间, 虽然和 用poll 一样, 用户层的代码还必须要调用 read/write, 但这个函数内部实现所触发的深度不同了.&lt;/p&gt;
+
+&lt;p&gt;用 poll 时, poll  通知用户空间的Appliation时, 数据还在内核空间, 所以Appliation调用 read API 时, 内部会做 copy socket data from kenel space to user space.&lt;/p&gt;
+
+&lt;p&gt;而用 epoll 时, epoll 通知用户空间的Appliation时, 数据已经在用户空间, 所以 Appliation调用 read API 时, 只是读取用户空间的 buffer, 没有 kernal space和 user space的switch了.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Java NIO和epoll&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Java NIO也就是 NIO1.0 在Linux JDK6时已经改用 epoll 来作为 default selectorProvider了.&lt;/p&gt;
+
+&lt;p&gt;所以, 我有一个最大的疑问: 是否可以说, Java7中的 NIO2.0中的 AIO 改进已经无法压榨出 Linux2.6下epoll所带来的好处了?! 毕竟NIO1.0 在JDK6时已经用过 epoll 了.&lt;/p&gt;
+
+&lt;p&gt;还没有来得及研究Java7中的NIO2.0, 但无论如何, NIO2.0从 framework层面所带来的好处肯定是非常深远的.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Zero Copy&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;上面多次提到 内核空间 和 用户空间 的switch, 在socket read/write这么小的粒度频繁调用, 代价肯定是很大的.&lt;/p&gt;
+
+&lt;p&gt;所以可以在网上看到 Zero Copy的技术, 说到底 Zero Copy的思路就是: 分析你的业务, 看看是否能避免不必要的 跨空间copy, 比如可以用 sendfile() 函数充分利用 内核可以调用DMA 的优势,  直接在内核空间将文件的内容通过socket发送出去, 而不必经过用户空间. 显然, sendfile是有很多的前提条件的, 如果你想让文件内容作一些变换再发出去, 就必须要经过 用户空间的 Appliation logic, 也是无法使用sendfile了.   还有一种方式就是象 epoll 所做的, 用内存映射.&lt;/p&gt;
+
+&lt;p&gt;[原创链接: &lt;a href=&#34;http://www.smithfox.com/?e=191&#34;&gt;http://www.smithfox.com/?e=191&lt;/a&gt;, 转载请保留此声明, 谢谢! ]&lt;/p&gt;
+
+&lt;p&gt;最后列些链接:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://unknownerror.net/2011-05/23919-linuxs-epoll-model.html&#34;&gt;http://unknownerror.net/2011-05/23919-linuxs-epoll-model.html&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Unix网络编程 这本书&lt;/p&gt;
+
+&lt;p&gt;CK100问题, 是一个非常全面的 服务端socket并发的讨论, 一直更新, 上面有很多非常有价值的链接: &lt;a href=&#34;http://www.kegel.com/c10k.html&#34;&gt;http://www.kegel.com/c10k.html&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;有关 Zero Copy,  在IBM developer上的文章:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.ibm.com/developerworks/cn/linux/l-cn-zerocopy1/index.html&#34;&gt;http://www.ibm.com/developerworks/cn/linux/l-cn-zerocopy1/index.html&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.ibm.com/developerworks/cn/linux/l-cn-zerocopy2/index.html&#34;&gt;http://www.ibm.com/developerworks/cn/linux/l-cn-zerocopy2/index.html&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.ibm.com/developerworks/cn/java/j-zerocopy/&#34;&gt;http://www.ibm.com/developerworks/cn/java/j-zerocopy/&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;下面是我看过的其他blog的文章:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://blog.csdn.net/shallwake/article/details/5265287&#34;&gt;http://blog.csdn.net/shallwake/article/details/5265287&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.sogou.com/labs/report/1-1.pdf&#34;&gt;http://www.sogou.com/labs/report/1-1.pdf&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.linuxpig.com/2011/02/linux-epoll-explai/&#34;&gt;http://www.linuxpig.com/2011/02/linux-epoll-explai/&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://blog.csdn.net/goldou/article/details/2579781&#34;&gt;http://blog.csdn.net/goldou/article/details/2579781&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>用p5.js画diagram-第一部分</title>
+      <link>https://smithfox.github.io/%E5%8F%AF%E8%A7%86%E5%8C%96/diagram-using-p5js-part1/</link>
+      <pubDate>Thu, 28 May 2015 12:54:36 +0800</pubDate>
+      
+      <guid>https://smithfox.github.io/%E5%8F%AF%E8%A7%86%E5%8C%96/diagram-using-p5js-part1/</guid>
+      <description>&lt;h3 id=&#34;目的&#34;&gt;目的&lt;/h3&gt;
+
+&lt;p&gt;基于浏览器的有交换和简单动画的可视化&lt;/p&gt;
+
+&lt;h3 id=&#34;选择&#34;&gt;选择&lt;/h3&gt;
+
+&lt;p&gt;浏览器的可视化技术有: svg、canvas、webgl；&lt;/p&gt;
+
+&lt;p&gt;&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;&lt;strong&gt;svg&lt;/strong&gt; 基于xml，维护了可以和 DOM 一样的 object three，DOM 的js api 可以直接操作。但近年的发展显示 DOM 这种技术实际已经是一种瓶颈。
+&lt;strong&gt;webgl&lt;/strong&gt; 主要是处理3D的，考虑到手机硬件和手机的浏览器标准的实现碎片情况，不太适合。
+&lt;strong&gt;canvas&lt;/strong&gt; 我的选择。平台和硬件的兼容性都不错，比svg更胜任多对象和动画的处理。缺点是: canvas内的key，mouse事件都是全局的，需要有framework能dispatch event机制。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;基于html5 canvas的框架有很多，我选择了 &lt;a href=&#34;https://github.com/processing/p5.js&#34;&gt;p5.js&lt;/a&gt;，是因为:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;2013年开始到现在一直都比较活跃&lt;/li&gt;
+&lt;li&gt;属于processing基金会、能比较简单地将&lt;a href=&#34;https://processing.org/&#34;&gt;processing&lt;/a&gt;资源转换过来&lt;/li&gt;
+&lt;li&gt;相对与 &lt;a href=&#34;https://processing.org/&#34;&gt;processingjs&lt;/a&gt;，没有 Java 语言的约束，而是直接用js来写，不用在js层面处理 语法解析&lt;/li&gt;
+&lt;li&gt;我发现了非常棒的 processingjs 的教学。 &lt;a href=&#34;https://www.khanacademy.org/computing/computer-programming/programming&#34;&gt;https://www.khanacademy.org/computing/computer-programming/programming&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;比较自然的canvas DSL。(对processingjs来说是DSL，对p5.js来说是直接的函数实现)&lt;/li&gt;
+&lt;li&gt;有p5.dom这样的插件能处理和DOM的交互&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&#34;学习&#34;&gt;学习&lt;/h3&gt;
+
+&lt;h3 id=&#34;实战&#34;&gt;实战&lt;/h3&gt;</description>
+    </item>
+    
+    <item>
+      <title>用golan进行词法分析-第一部分</title>
+      <link>https://smithfox.github.io/%E7%BC%96%E7%A8%8B%E8%AF%AD%E8%A8%80/sytax-parse-using-golang-part1/</link>
       <pubDate>Tue, 26 May 2015 16:32:07 +0800</pubDate>
       
-      <guid>http://smithfox.github.io/post/p3/</guid>
-      <description>
-
-&lt;h3 id=&#34;主要步骤:3338874448cf36f2056dd96b34bbe8b9&#34;&gt;主要步骤&lt;/h3&gt;
+      <guid>https://smithfox.github.io/%E7%BC%96%E7%A8%8B%E8%AF%AD%E8%A8%80/sytax-parse-using-golang-part1/</guid>
+      <description>&lt;h3 id=&#34;主要步骤&#34;&gt;主要步骤&lt;/h3&gt;
 
 &lt;ol&gt;
 &lt;li&gt;词法分析(lexical parse或是lexical scan) 得到 token&lt;/li&gt;
@@ -26,7 +184,7 @@
 &lt;li&gt;语义分析(semantic parse)修改AST&lt;/li&gt;
 &lt;/ol&gt;
 
-&lt;h3 id=&#34;词法分析常见问题:3338874448cf36f2056dd96b34bbe8b9&#34;&gt;词法分析常见问题&lt;/h3&gt;
+&lt;h3 id=&#34;词法分析常见问题&#34;&gt;词法分析常见问题&lt;/h3&gt;
 
 &lt;ol&gt;
 &lt;li&gt;&lt;p&gt;输入内容编码问题: 可能有汉字
@@ -45,7 +203,9 @@
 &lt;li&gt;&lt;p&gt;Token如何定义&lt;/p&gt;&lt;/li&gt;
 &lt;/ol&gt;
 
-&lt;h3 id=&#34;先来一个简化的词法分析:3338874448cf36f2056dd96b34bbe8b9&#34;&gt;先来一个简化的词法分析&lt;/h3&gt;
+&lt;p&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;先来一个简化的词法分析&#34;&gt;先来一个简化的词法分析&lt;/h3&gt;
 
 &lt;p&gt;没有源代码文件，直接string源代码。utf-8编码，不处理转义，直接printf错误，只有10进制。
 &lt;strong&gt;我们要分析&lt;/strong&gt;&lt;/p&gt;
@@ -155,7 +315,7 @@ func (m *Source) skipLetters() {
 }
 
 func (m *Source) printf() {
-	fmt.Printf(&amp;quot;(d0:%d, d1:%d)\n&amp;quot;, m.d0, m.d1)
+	//fmt.Printf(&amp;quot;(d0:%d, d1:%d)\n&amp;quot;, m.d0, m.d1)
 }
 
 func main() {
@@ -170,11 +330,13 @@ func main() {
 }
 
 func scan(source *Source) ([]*Token, error) {
+	fmt.Printf(&amp;quot;http://smithfox.github.io/p3/\n\n\n&amp;quot;)
+	fmt.Printf(&amp;quot;source=\n%s\n\n\n&amp;quot;, source.str)
 	tokens := []*Token{}
 	n := 0
 	for {
 		n++
-		if n &amp;gt; 100 {
+		if n &amp;gt; 100 { //防止有bug出现死循环,给playground造成很大压力
 			break
 		}
 		source.printf()
@@ -216,29 +378,27 @@ _exit:
 
 func show(tokens []*Token) {
 	for _, token := range tokens {
-		fmt.Printf(&amp;quot;[&amp;quot; + token.TokenName + &amp;quot;],&amp;quot;)
-	}
-	fmt.Printf(&amp;quot;\n--------------------------\n&amp;quot;)
-	for _, token := range tokens {
-		fmt.Printf(&amp;quot;[&amp;quot; + token.TokenString + &amp;quot;],&amp;quot;)
+		fmt.Printf(&amp;quot;[&amp;quot; + token.TokenName + &amp;quot;,&#39;&amp;quot; + token.TokenString + &amp;quot;&#39;],\n&amp;quot;)
 	}
 }
 
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;&lt;a href=&#34;https://wide.b3log.org/playground/ce2e3f4ea0984c953aebd8223367bb7b.go&#34;&gt;play&lt;/a&gt;&lt;/p&gt;
-</description>
+&lt;p&gt;&lt;a href=&#34;https://wide.b3log.org/playground/c75bc247ad19b8c5c8a388fb4abb3a9f.go&#34;&gt;play&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;你不禁感叹: 分析这个还要这么多的代码？!
+你如果稍微看这些代码，你能发现有很多的代码有相似性。在真正找到这些相似性的本质前，我不打算继续写代码。&lt;/p&gt;</description>
     </item>
     
     <item>
       <title>网站的基本样式</title>
-      <link>http://smithfox.github.io/post/second/</link>
+      <link>https://smithfox.github.io/%E7%BC%96%E7%A8%8B%E8%AF%AD%E8%A8%80/basic-css/</link>
       <pubDate>Mon, 25 May 2015 20:16:44 +0800</pubDate>
       
-      <guid>http://smithfox.github.io/post/second/</guid>
+      <guid>https://smithfox.github.io/%E7%BC%96%E7%A8%8B%E8%AF%AD%E8%A8%80/basic-css/</guid>
       <description>
 
-&lt;h1 id=&#34;网站的基本样式参考:9f7936f9b5c071ae81db818b80a44a0d&#34;&gt;网站的基本样式参考&lt;/h1&gt;
+&lt;h1 id=&#34;网站的基本样式参考&#34;&gt;网站的基本样式参考&lt;/h1&gt;
 
 &lt;ul&gt;
 &lt;li&gt;&lt;a href=&#34;http://purecss.io/&#34;&gt;purecss&lt;/a&gt;&lt;/li&gt;
@@ -250,22 +410,39 @@ func show(tokens []*Token) {
     
     <item>
       <title>Markdown示例</title>
-      <link>http://smithfox.github.io/post/first/</link>
+      <link>https://smithfox.github.io/%E5%B7%A5%E5%85%B7/example-of-markdown/</link>
       <pubDate>Mon, 25 May 2015 14:21:17 +0800</pubDate>
       
-      <guid>http://smithfox.github.io/post/first/</guid>
-      <description>
+      <guid>https://smithfox.github.io/%E5%B7%A5%E5%85%B7/example-of-markdown/</guid>
+      <description>&lt;p&gt;&lt;a href=&#34;https://www.zybuluo.com/mdeditor&#34;&gt;https://www.zybuluo.com/mdeditor&lt;/a&gt;&lt;/p&gt;
 
 &lt;pre&gt;&lt;code&gt;# 这是 H1 #
 ## 这是 H2 ##
 ### 这是 H3 ###
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;h1 id=&#34;这是-h1:e8fb9c67eba912c72729806db31eaa1b&#34;&gt;这是 H1&lt;/h1&gt;
+&lt;h1 id=&#34;这是-h1&#34;&gt;这是 H1&lt;/h1&gt;
 
-&lt;h2 id=&#34;这是-h2:e8fb9c67eba912c72729806db31eaa1b&#34;&gt;这是 H2&lt;/h2&gt;
+&lt;h2 id=&#34;这是-h2&#34;&gt;这是 H2&lt;/h2&gt;
 
-&lt;h3 id=&#34;这是-h3:e8fb9c67eba912c72729806db31eaa1b&#34;&gt;这是 H3&lt;/h3&gt;
+&lt;h3 id=&#34;这是-h3&#34;&gt;这是 H3&lt;/h3&gt;
+
+&lt;p&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;&amp;gt; * 整理知识，学习笔记
+&amp;gt; * 发布日记，杂文，所见所想
+&amp;gt; * 撰写发布技术文稿（代码支持）
+&amp;gt; * 撰写发布学术论文（LaTeX 公式支持）
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;blockquote&gt;
+&lt;ul&gt;
+&lt;li&gt;整理知识，学习笔记&lt;/li&gt;
+&lt;li&gt;发布日记，杂文，所见所想&lt;/li&gt;
+&lt;li&gt;撰写发布技术文稿（代码支持）&lt;/li&gt;
+&lt;li&gt;撰写发布学术论文（LaTeX 公式支持）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/blockquote&gt;
 
 &lt;pre&gt;&lt;code&gt;&amp;gt;     区块(前有5个空格)
 &amp;gt;     区块(前有5个空格)
@@ -275,13 +452,12 @@ func show(tokens []*Token) {
 &lt;pre&gt;&lt;code&gt;区块(前有5个空格)
 区块(前有5个空格)
 &lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;这个一个很长的块注释这个一个很长的块注释这个一个很长的块注释这个一个很长的块注释这个一个很长的块注释这个一个很长的块注释这个一个很长的块注释这个一个很长的块注释这个一个很长的块注释这个一个很长的块注释这个一个很长的块注释&lt;/p&gt;
 &lt;/blockquote&gt;
 
 &lt;pre&gt;&lt;code&gt;*斜体*
 **粗体**
 ***粗斜体***
+~~删除线~~~
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;&lt;em&gt;斜体&lt;/em&gt;&lt;/p&gt;
@@ -289,6 +465,8 @@ func show(tokens []*Token) {
 &lt;p&gt;&lt;strong&gt;粗体&lt;/strong&gt;&lt;/p&gt;
 
 &lt;p&gt;&lt;strong&gt;&lt;em&gt;粗斜体&lt;/em&gt;&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;del&gt;删除线&lt;/del&gt;~&lt;/p&gt;
 
 &lt;pre&gt;&lt;code&gt;- 无序列表项a
 - 无序列表项b
@@ -316,6 +494,43 @@ func show(tokens []*Token) {
 &lt;li&gt;数字序号4&lt;/li&gt;
 &lt;/ol&gt;
 
+&lt;pre&gt;&lt;code&gt;| 项目        | 价格   |  数量  |
+| --------    | -----: | :----: |
+| 计算机      | \$1600 |    5   |
+| 手机        |   \$12 |   12   |
+| 管线        |    \$1 |  234   |
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;项目&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;价格&lt;/th&gt;
+&lt;th align=&#34;center&#34;&gt;数量&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;计算机&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;\$1600&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;5&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;手机&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;\$12&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;12&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;管线&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;\$1&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;234&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
 &lt;pre&gt;&lt;code&gt;自动link:  &amp;lt;http://example.com/&amp;gt;
 &lt;/code&gt;&lt;/pre&gt;
 
@@ -327,9 +542,9 @@ func show(tokens []*Token) {
 &lt;p&gt;&lt;a href=&#34;http://daringfireball.net/projects/markdown/syntax&#34;&gt;markdown的官方语法说明&lt;/a&gt;&lt;/p&gt;
 
 &lt;pre&gt;&lt;code&gt;引用例子: 访问了3个网站 [Google][1] 和 [Yahoo][2] 和 [MSN][3]
-
-
-
+[1]: http://google.com/        &amp;quot;Google&amp;quot; 
+[2]: http://search.yahoo.com/  &amp;quot;Yahoo Search&amp;quot; 
+[3]: http://search.msn.com/    &amp;quot;MSN Search&amp;quot;
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;引用例子: 访问了3个网站 &lt;a href=&#34;http://google.com/&#34; title=&#34;Google&#34;&gt;Google&lt;/a&gt; 和 &lt;a href=&#34;http://search.yahoo.com/&#34; title=&#34;Yahoo Search&#34;&gt;Yahoo&lt;/a&gt; 和 &lt;a href=&#34;http://search.msn.com/&#34; title=&#34;MSN Search&#34;&gt;MSN&lt;/a&gt;.&lt;/p&gt;
@@ -337,8 +552,12 @@ func show(tokens []*Token) {
 &lt;pre&gt;&lt;code&gt;图片：![alt 图片的alt](http://imgcache.qq.com/bossweb/service/v4/images/logo_x5.png &amp;quot;图片的Title&amp;quot;)
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;图片：&lt;img src=&#34;http://imgcache.qq.com/bossweb/service/v4/images/logo_x5.png&#34; alt=&#34;alt 图片的alt&#34; title=&#34;图片的Title&#34; /&gt;
-&lt;/p&gt;
+&lt;p&gt;图片：&lt;img src=&#34;http://imgcache.qq.com/bossweb/service/v4/images/logo_x5.png&#34; alt=&#34;alt 图片的alt&#34; title=&#34;图片的Title&#34; /&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;[^footnote]: 这是一个 *注脚* 的 **文本**。
+
+[^footnote2]: 这是另一个 *注脚* 的 **文本**。
+&lt;/code&gt;&lt;/pre&gt;
 
 &lt;pre&gt;&lt;code&gt;横线
 --------------------------
@@ -364,8 +583,7 @@ func IsLocalHost(host string) bool {
 func IsLocalHost(host string) bool {
 	return strings.HasPrefix(host, &amp;quot;localhost&amp;quot;) || strings.HasPrefix(host, &amp;quot;127.0.0.1&amp;quot;) || strings.HasPrefix(host, &amp;quot;192.168.&amp;quot;)
 }
-&lt;/code&gt;&lt;/pre&gt;
-</description>
+&lt;/code&gt;&lt;/pre&gt;</description>
     </item>
     
   </channel>

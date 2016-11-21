@@ -1,24 +1,21 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>编程语言 on SmithFox Blog</title>
-    <link>http://smithfox.github.io/categories/%E7%BC%96%E7%A8%8B%E8%AF%AD%E8%A8%80/</link>
-    <description>Recent content in 编程语言 on SmithFox Blog</description>
+    <title>SMITHFOX</title>
+    <link>https://smithfox.github.io/categories/%E7%BC%96%E7%A8%8B%E8%AF%AD%E8%A8%80/index.xml</link>
+    <description>Recent content on SMITHFOX</description>
     <generator>Hugo -- gohugo.io</generator>
-    <language>zh-CN</language>
-    <copyright>@ 2015 by SmithFox</copyright>
-    <lastBuildDate>Tue, 26 May 2015 16:32:07 +0800</lastBuildDate>
-    <atom:link href="http://smithfox.github.io/categories/%E7%BC%96%E7%A8%8B%E8%AF%AD%E8%A8%80/index.xml" rel="self" type="application/rss+xml" />
+    <language>en-us</language>
+    <copyright>Powered by [Hugo](//gohugo.io). Theme by [wave](https://gitlab.com/syui/hugo-theme-wave).</copyright>
+    <atom:link href="https://smithfox.github.io/categories/%E7%BC%96%E7%A8%8B%E8%AF%AD%E8%A8%80/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
-      <title>用golan进行词法分析，第一部分</title>
-      <link>http://smithfox.github.io/post/p3/</link>
+      <title>用golan进行词法分析-第一部分</title>
+      <link>https://smithfox.github.io/%E7%BC%96%E7%A8%8B%E8%AF%AD%E8%A8%80/sytax-parse-using-golang-part1/</link>
       <pubDate>Tue, 26 May 2015 16:32:07 +0800</pubDate>
       
-      <guid>http://smithfox.github.io/post/p3/</guid>
-      <description>
-
-&lt;h3 id=&#34;主要步骤:3338874448cf36f2056dd96b34bbe8b9&#34;&gt;主要步骤&lt;/h3&gt;
+      <guid>https://smithfox.github.io/%E7%BC%96%E7%A8%8B%E8%AF%AD%E8%A8%80/sytax-parse-using-golang-part1/</guid>
+      <description>&lt;h3 id=&#34;主要步骤&#34;&gt;主要步骤&lt;/h3&gt;
 
 &lt;ol&gt;
 &lt;li&gt;词法分析(lexical parse或是lexical scan) 得到 token&lt;/li&gt;
@@ -26,7 +23,7 @@
 &lt;li&gt;语义分析(semantic parse)修改AST&lt;/li&gt;
 &lt;/ol&gt;
 
-&lt;h3 id=&#34;词法分析常见问题:3338874448cf36f2056dd96b34bbe8b9&#34;&gt;词法分析常见问题&lt;/h3&gt;
+&lt;h3 id=&#34;词法分析常见问题&#34;&gt;词法分析常见问题&lt;/h3&gt;
 
 &lt;ol&gt;
 &lt;li&gt;&lt;p&gt;输入内容编码问题: 可能有汉字
@@ -45,7 +42,9 @@
 &lt;li&gt;&lt;p&gt;Token如何定义&lt;/p&gt;&lt;/li&gt;
 &lt;/ol&gt;
 
-&lt;h3 id=&#34;先来一个简化的词法分析:3338874448cf36f2056dd96b34bbe8b9&#34;&gt;先来一个简化的词法分析&lt;/h3&gt;
+&lt;p&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;先来一个简化的词法分析&#34;&gt;先来一个简化的词法分析&lt;/h3&gt;
 
 &lt;p&gt;没有源代码文件，直接string源代码。utf-8编码，不处理转义，直接printf错误，只有10进制。
 &lt;strong&gt;我们要分析&lt;/strong&gt;&lt;/p&gt;
@@ -155,7 +154,7 @@ func (m *Source) skipLetters() {
 }
 
 func (m *Source) printf() {
-	fmt.Printf(&amp;quot;(d0:%d, d1:%d)\n&amp;quot;, m.d0, m.d1)
+	//fmt.Printf(&amp;quot;(d0:%d, d1:%d)\n&amp;quot;, m.d0, m.d1)
 }
 
 func main() {
@@ -170,11 +169,13 @@ func main() {
 }
 
 func scan(source *Source) ([]*Token, error) {
+	fmt.Printf(&amp;quot;http://smithfox.github.io/p3/\n\n\n&amp;quot;)
+	fmt.Printf(&amp;quot;source=\n%s\n\n\n&amp;quot;, source.str)
 	tokens := []*Token{}
 	n := 0
 	for {
 		n++
-		if n &amp;gt; 100 {
+		if n &amp;gt; 100 { //防止有bug出现死循环,给playground造成很大压力
 			break
 		}
 		source.printf()
@@ -216,18 +217,16 @@ _exit:
 
 func show(tokens []*Token) {
 	for _, token := range tokens {
-		fmt.Printf(&amp;quot;[&amp;quot; + token.TokenName + &amp;quot;],&amp;quot;)
-	}
-	fmt.Printf(&amp;quot;\n--------------------------\n&amp;quot;)
-	for _, token := range tokens {
-		fmt.Printf(&amp;quot;[&amp;quot; + token.TokenString + &amp;quot;],&amp;quot;)
+		fmt.Printf(&amp;quot;[&amp;quot; + token.TokenName + &amp;quot;,&#39;&amp;quot; + token.TokenString + &amp;quot;&#39;],\n&amp;quot;)
 	}
 }
 
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;&lt;a href=&#34;https://wide.b3log.org/playground/ce2e3f4ea0984c953aebd8223367bb7b.go&#34;&gt;play&lt;/a&gt;&lt;/p&gt;
-</description>
+&lt;p&gt;&lt;a href=&#34;https://wide.b3log.org/playground/c75bc247ad19b8c5c8a388fb4abb3a9f.go&#34;&gt;play&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;你不禁感叹: 分析这个还要这么多的代码？!
+你如果稍微看这些代码，你能发现有很多的代码有相似性。在真正找到这些相似性的本质前，我不打算继续写代码。&lt;/p&gt;</description>
     </item>
     
   </channel>

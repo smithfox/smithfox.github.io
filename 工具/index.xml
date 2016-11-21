@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>SMITHFOX</title>
-    <link>https://smithfox.github.io/tags/markdown/index.xml</link>
-    <description>Recent content on SMITHFOX</description>
+    <title>工具-rsses on SMITHFOX</title>
+    <link>https://smithfox.github.io/%E5%B7%A5%E5%85%B7/index.xml</link>
+    <description>Recent content in 工具-rsses on SMITHFOX</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>Powered by [Hugo](//gohugo.io). Theme by [wave](https://gitlab.com/syui/hugo-theme-wave).</copyright>
-    <atom:link href="https://smithfox.github.io/tags/markdown/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Mon, 25 May 2015 14:21:17 +0800</lastBuildDate>
+    <atom:link href="https://smithfox.github.io/%E5%B7%A5%E5%85%B7/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
       <title>Markdown示例</title>

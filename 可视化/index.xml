@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>可视化-rsses on SMITHFOX</title>
+    <link>https://smithfox.github.io/%E5%8F%AF%E8%A7%86%E5%8C%96/index.xml</link>
+    <description>Recent content in 可视化-rsses on SMITHFOX</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <copyright>Powered by [Hugo](//gohugo.io). Theme by [wave](https://gitlab.com/syui/hugo-theme-wave).</copyright>
+    <lastBuildDate>Thu, 28 May 2015 12:54:36 +0800</lastBuildDate>
+    <atom:link href="https://smithfox.github.io/%E5%8F%AF%E8%A7%86%E5%8C%96/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>用p5.js画diagram-第一部分</title>
+      <link>https://smithfox.github.io/%E5%8F%AF%E8%A7%86%E5%8C%96/diagram-using-p5js-part1/</link>
+      <pubDate>Thu, 28 May 2015 12:54:36 +0800</pubDate>
+      
+      <guid>https://smithfox.github.io/%E5%8F%AF%E8%A7%86%E5%8C%96/diagram-using-p5js-part1/</guid>
+      <description>&lt;h3 id=&#34;目的&#34;&gt;目的&lt;/h3&gt;
+
+&lt;p&gt;基于浏览器的有交换和简单动画的可视化&lt;/p&gt;
+
+&lt;h3 id=&#34;选择&#34;&gt;选择&lt;/h3&gt;
+
+&lt;p&gt;浏览器的可视化技术有: svg、canvas、webgl；&lt;/p&gt;
+
+&lt;p&gt;&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;&lt;strong&gt;svg&lt;/strong&gt; 基于xml，维护了可以和 DOM 一样的 object three，DOM 的js api 可以直接操作。但近年的发展显示 DOM 这种技术实际已经是一种瓶颈。
+&lt;strong&gt;webgl&lt;/strong&gt; 主要是处理3D的，考虑到手机硬件和手机的浏览器标准的实现碎片情况，不太适合。
+&lt;strong&gt;canvas&lt;/strong&gt; 我的选择。平台和硬件的兼容性都不错，比svg更胜任多对象和动画的处理。缺点是: canvas内的key，mouse事件都是全局的，需要有framework能dispatch event机制。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;基于html5 canvas的框架有很多，我选择了 &lt;a href=&#34;https://github.com/processing/p5.js&#34;&gt;p5.js&lt;/a&gt;，是因为:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;2013年开始到现在一直都比较活跃&lt;/li&gt;
+&lt;li&gt;属于processing基金会、能比较简单地将&lt;a href=&#34;https://processing.org/&#34;&gt;processing&lt;/a&gt;资源转换过来&lt;/li&gt;
+&lt;li&gt;相对与 &lt;a href=&#34;https://processing.org/&#34;&gt;processingjs&lt;/a&gt;，没有 Java 语言的约束，而是直接用js来写，不用在js层面处理 语法解析&lt;/li&gt;
+&lt;li&gt;我发现了非常棒的 processingjs 的教学。 &lt;a href=&#34;https://www.khanacademy.org/computing/computer-programming/programming&#34;&gt;https://www.khanacademy.org/computing/computer-programming/programming&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;比较自然的canvas DSL。(对processingjs来说是DSL，对p5.js来说是直接的函数实现)&lt;/li&gt;
+&lt;li&gt;有p5.dom这样的插件能处理和DOM的交互&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&#34;学习&#34;&gt;学习&lt;/h3&gt;
+
+&lt;h3 id=&#34;实战&#34;&gt;实战&lt;/h3&gt;</description>
+    </item>
+    
+  </channel>
+</rss>

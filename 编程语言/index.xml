@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>SMITHFOX</title>
-    <link>https://smithfox.github.io/tags/lexer/index.xml</link>
-    <description>Recent content on SMITHFOX</description>
+    <title>编程语言-rsses on SMITHFOX</title>
+    <link>https://smithfox.github.io/%E7%BC%96%E7%A8%8B%E8%AF%AD%E8%A8%80/index.xml</link>
+    <description>Recent content in 编程语言-rsses on SMITHFOX</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>Powered by [Hugo](//gohugo.io). Theme by [wave](https://gitlab.com/syui/hugo-theme-wave).</copyright>
-    <atom:link href="https://smithfox.github.io/tags/lexer/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Tue, 26 May 2015 16:32:07 +0800</lastBuildDate>
+    <atom:link href="https://smithfox.github.io/%E7%BC%96%E7%A8%8B%E8%AF%AD%E8%A8%80/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
       <title>用golan进行词法分析-第一部分</title>
@@ -227,6 +228,24 @@ func show(tokens []*Token) {
 
 &lt;p&gt;你不禁感叹: 分析这个还要这么多的代码？!
 你如果稍微看这些代码，你能发现有很多的代码有相似性。在真正找到这些相似性的本质前，我不打算继续写代码。&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>网站的基本样式</title>
+      <link>https://smithfox.github.io/%E7%BC%96%E7%A8%8B%E8%AF%AD%E8%A8%80/basic-css/</link>
+      <pubDate>Mon, 25 May 2015 20:16:44 +0800</pubDate>
+      
+      <guid>https://smithfox.github.io/%E7%BC%96%E7%A8%8B%E8%AF%AD%E8%A8%80/basic-css/</guid>
+      <description>
+
+&lt;h1 id=&#34;网站的基本样式参考&#34;&gt;网站的基本样式参考&lt;/h1&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;http://purecss.io/&#34;&gt;purecss&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://topcoat.io/&#34;&gt;topcoat&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://necolas.github.io/normalize.css/&#34;&gt;normalize.css&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
     </item>
     
   </channel>

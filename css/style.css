@@ -2122,6 +2122,7 @@ ul.nav.navbar-nav.navbar-right > li > a > i.fa.fa-gitlab,ul.nav.navbar-nav.navba
 	width:980px;
 	margin-right: auto;
 	margin-left: auto;
+	padding-left: 20px;
 }
 
 #footer-right {

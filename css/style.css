@@ -827,6 +827,7 @@ a:visited {
 .article-meta {
 	margin-left: 0;
 	padding-left: 0;
+	text-align: left;
 }
 .article-meta:after {
 	clear: both;
